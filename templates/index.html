@@ -2,200 +2,53 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Дежурная часть ОМВД России по Провинциальному району</title>
     <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', 'Arial', sans-serif;
-        }
-
-        body {
-            background: #0a1a2a;
-            color: #e0e0e0;
-        }
-
-        /* ШАПКА */
-        .header {
-            background: linear-gradient(135deg, #0b1a2a 0%, #1e3a5f 100%);
-            padding: 10px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 3px solid #c01f2e;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 1000;
-        }
-
-        .logo h1 { font-size: 16px; }
-        .logo p { font-size: 10px; opacity: 0.7; }
-
-        .stats-bar { display: flex; gap: 15px; flex-wrap: wrap; }
-        .stat { background: rgba(0,0,0,0.3); padding: 4px 12px; border-radius: 20px; font-size: 12px; }
-        .stat span { font-weight: bold; color: #ff4444; font-size: 16px; }
-
-        .user-info { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
-        .user-department { background: #1e3a5f; padding: 4px 10px; border-radius: 20px; font-size: 11px; }
-        .user-unit { background: #0a1520; padding: 4px 10px; border-radius: 20px; font-size: 11px; }
-        .badge { background: #c01f2e; padding: 4px 10px; border-radius: 20px; font-size: 12px; }
-        .logout-btn { background: none; border: 1px solid #c01f2e; color: white; padding: 4px 12px; border-radius: 20px; cursor: pointer; }
-
-        /* ОСНОВНАЯ СЕТКА */
-        .dashboard {
-            display: grid;
-            grid-template-columns: 340px 1fr 340px;
-            gap: 15px;
-            padding: 80px 20px 20px;
-        }
-
-        /* ПАНЕЛИ */
-        .panel {
-            background: #0f1c2c;
-            border-radius: 12px;
-            border: 1px solid #1e3a5f;
-            overflow: hidden;
-        }
-        .panel-header {
-            background: #1e3a5f;
-            padding: 10px 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .panel-header h3 { font-size: 13px; }
-        .panel-content { padding: 10px; max-height: calc(100vh - 150px); overflow-y: auto; }
-
-        /* КУСП */
-        .kusp-item {
-            background: #0a1520;
-            border-left: 3px solid;
-            padding: 10px;
-            margin-bottom: 8px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .kusp-item:hover { background: #0d1a2a; transform: translateX(-3px); }
-        .kusp-item.urgent { border-left-color: #ff4444; }
-        .kusp-item.high { border-left-color: #ff8844; }
-        .kusp-item.medium { border-left-color: #ffcc00; }
-        .kusp-item.low { border-left-color: #44ff44; }
-        .kusp-number { font-family: monospace; font-weight: bold; color: #ffcc00; font-size: 12px; }
-        .kusp-place { font-size: 11px; margin-top: 4px; color: #aaa; }
-        .kusp-status { display: inline-block; padding: 2px 6px; border-radius: 10px; font-size: 9px; margin-top: 5px; }
-        .status-registered { background: #e68a00; }
-        .status-assigned { background: #007bff; }
-        .status-in_progress { background: #17a2b8; }
-        .status-completed { background: #28a745; }
-
-        /* ФОРМА */
-        .form-row { margin-bottom: 10px; }
-        .form-row input, .form-row select, .form-row textarea {
-            width: 100%;
-            padding: 8px;
-            background: #0a1520;
-            border: 1px solid #1e3a5f;
-            border-radius: 6px;
-            color: white;
-            font-size: 12px;
-        }
-        .form-row label { font-size: 10px; color: #aaa; display: block; margin-bottom: 4px; }
-
-        /* НАРЯДЫ */
-        .squad-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px;
-            border-bottom: 1px solid #1e3a5f;
-        }
-        .squad-name { font-weight: bold; font-size: 13px; }
-        .squad-unit { font-size: 10px; color: #888; }
-        .squad-status { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 8px; }
-        .status-available { background: #28a745; box-shadow: 0 0 5px #28a745; }
-        .status-on_mission { background: #e68a00; }
-        .status-unavailable { background: #c01f2e; }
-
-        /* РАДИО */
-        .radio-messages { height: 280px; overflow-y: auto; padding: 10px; }
-        .radio-msg { padding: 8px; border-bottom: 1px solid #1e3a5f; font-size: 12px; }
-        .radio-msg.urgent { background: rgba(192,31,46,0.2); border-left: 3px solid #c01f2e; }
-        .radio-sender { color: #ffcc00; font-weight: bold; }
-        .radio-department { font-size: 9px; color: #888; margin-left: 5px; }
-        .radio-input { display: flex; gap: 8px; padding: 10px; border-top: 1px solid #1e3a5f; }
-        .radio-input input { flex: 1; padding: 8px; background: #0a1520; border: 1px solid #1e3a5f; border-radius: 20px; color: white; }
-
-        /* ОРИЕНТИРОВКИ */
-        .wanted-item {
-            background: #0a1520;
-            padding: 10px;
-            margin-bottom: 8px;
-            border-radius: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .wanted-danger { background: #c01f2e; padding: 2px 6px; border-radius: 10px; font-size: 9px; }
-
-        /* ОНЛАЙН ПОЛЬЗОВАТЕЛИ */
-        .online-user {
-            padding: 8px;
-            border-bottom: 1px solid #1e3a5f;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .online-user-name { font-size: 12px; }
-        .online-user-dept { font-size: 9px; color: #888; }
-        .online-status { color: #28a745; font-size: 10px; }
-
-        /* КНОПКИ */
-        .btn { padding: 6px 12px; border: none; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: bold; }
-        .btn-primary { background: #1e3a5f; color: white; }
-        .btn-success { background: #28a745; color: white; }
-        .btn-danger { background: #c01f2e; color: white; }
-        .btn-warning { background: #e68a00; color: white; }
-
-        /* МОДАЛКИ */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.8);
-            z-index: 2000;
-            justify-content: center;
-            align-items: center;
-        }
-        .modal-content {
-            background: #0f1c2c;
-            width: 500px;
-            border-radius: 12px;
-            border: 1px solid #1e3a5f;
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-        .modal-header { padding: 15px; border-bottom: 1px solid #1e3a5f; display: flex; justify-content: space-between; }
-        .modal-body { padding: 20px; }
-
-        /* УТИЛИТЫ */
-        .text-center { text-align: center; }
-        .mt-10 { margin-top: 10px; }
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-track { background: #0a1520; }
-        ::-webkit-scrollbar-thumb { background: #1e3a5f; border-radius: 3px; }
-
-        @media (max-width: 1000px) {
-            .dashboard { grid-template-columns: 1fr; gap: 10px; }
-        }
+        *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Arial,sans-serif}
+        body{background:#0a1a2a;color:#e0e0e0}
+        .header{background:linear-gradient(135deg,#0b1a2a,#1e3a5f);padding:10px 20px;display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #c01f2e;position:fixed;top:0;left:0;right:0;z-index:1000;flex-wrap:wrap}
+        .logo h1{font-size:16px}.logo p{font-size:10px;opacity:.7}
+        .stats-bar{display:flex;gap:15px;flex-wrap:wrap}.stat{background:rgba(0,0,0,0.3);padding:4px 12px;border-radius:20px;font-size:12px}.stat span{font-weight:bold;color:#ff4444}
+        .user-info{display:flex;gap:15px;align-items:center;flex-wrap:wrap}.badge{background:#c01f2e;padding:4px 10px;border-radius:20px}
+        .logout-btn{background:0;border:1px solid #c01f2e;color:#fff;padding:4px 12px;border-radius:20px;cursor:pointer}
+        .dashboard{display:grid;grid-template-columns:340px 1fr 340px;gap:15px;padding:80px 20px 20px}
+        @media(max-width:1000px){.dashboard{grid-template-columns:1fr}}
+        .panel{background:#0f1c2c;border-radius:12px;border:1px solid #1e3a5f;overflow:hidden}
+        .panel-header{background:#1e3a5f;padding:10px 15px;display:flex;justify-content:space-between;align-items:center}
+        .panel-header h3{font-size:13px}
+        .panel-content{padding:10px;max-height:calc(100vh - 150px);overflow-y:auto}
+        .kusp-item{background:#0a1520;border-left:3px solid;padding:10px;margin-bottom:8px;border-radius:8px;cursor:pointer}
+        .kusp-item.urgent{border-left-color:#ff4444}.kusp-item.high{border-left-color:#ff8844}.kusp-item.medium{border-left-color:#ffcc00}.kusp-item.low{border-left-color:#44ff44}
+        .kusp-number{font-family:monospace;font-weight:bold;color:#ffcc00}
+        .kusp-place{font-size:11px;margin-top:4px;color:#aaa}
+        .kusp-status{display:inline-block;padding:2px 6px;border-radius:10px;font-size:9px;margin-top:5px}
+        .status-registered{background:#e68a00}.status-assigned{background:#007bff}.status-completed{background:#28a745}
+        .form-row{margin-bottom:10px}.form-row input,.form-row select,.form-row textarea{width:100%;padding:8px;background:#0a1520;border:1px solid #1e3a5f;border-radius:6px;color:#fff}
+        .form-row label{font-size:10px;color:#aaa;display:block;margin-bottom:4px}
+        .squad-item{display:flex;justify-content:space-between;align-items:center;padding:10px;border-bottom:1px solid #1e3a5f}
+        .squad-status{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:8px}
+        .status-available{background:#28a745}.status-on_mission{background:#e68a00}.status-unavailable{background:#c01f2e}
+        .radio-messages{height:280px;overflow-y:auto;padding:10px}
+        .radio-msg{padding:8px;border-bottom:1px solid #1e3a5f}
+        .radio-msg.urgent{background:rgba(192,31,46,0.2);border-left:3px solid #c01f2e}
+        .radio-sender{color:#ffcc00;font-weight:bold}
+        .radio-input{display:flex;gap:8px;padding:10px;border-top:1px solid #1e3a5f}
+        .radio-input input{flex:1;padding:8px;background:#0a1520;border:1px solid #1e3a5f;border-radius:20px;color:#fff}
+        .wanted-item{background:#0a1520;padding:10px;margin-bottom:8px;border-radius:8px;display:flex;justify-content:space-between;align-items:center}
+        .wanted-danger{background:#c01f2e;padding:2px 6px;border-radius:10px;font-size:9px}
+        .online-user{padding:8px;border-bottom:1px solid #1e3a5f;display:flex;justify-content:space-between}
+        .btn{padding:6px 12px;border:none;border-radius:6px;cursor:pointer;font-size:11px;font-weight:bold}
+        .btn-primary{background:#1e3a5f;color:#fff}
+        .btn-success{background:#28a745;color:#fff}
+        .btn-warning{background:#e68a00;color:#fff}
+        .btn-danger{background:#c01f2e;color:#fff}
+        .modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:2000;justify-content:center;align-items:center}
+        .modal-content{background:#0f1c2c;width:500px;border-radius:12px;border:1px solid #1e3a5f;max-height:80vh;overflow-y:auto}
+        .modal-header{padding:15px;border-bottom:1px solid #1e3a5f;display:flex;justify-content:space-between}
+        .modal-header button{background:none;border:none;color:#fff;font-size:20px;cursor:pointer}
+        .modal-body{padding:20px}
+        .close-btn{background:none;border:none;color:#fff;font-size:20px;cursor:pointer}
     </style>
 </head>
 <body>
@@ -205,17 +58,15 @@
         <h1>👮 ОМВД России по Провинциальному району</h1>
         <p>Ленинградская область • Дежурная часть</p>
     </div>
-    <div class="stats-bar" id="statsBar">
-        <div class="stat">📞 КУСП: <span id="kuspToday">0</span></div>
+    <div class="stats-bar">
+        <div class="stat">📞 КУСП сегодня: <span id="kuspToday">0</span></div>
         <div class="stat">🔄 Активных: <span id="kuspActive">0</span></div>
         <div class="stat">👥 Онлайн: <span id="usersOnline">0</span></div>
         <div class="stat">🚔 Нарядов: <span id="availableSquads">0</span></div>
-        <div class="stat">⚠️ Розыск: <span id="wantedCount">0</span></div>
+        <div class="stat">⚠️ В розыске: <span id="wantedCount">0</span></div>
     </div>
     <div class="user-info">
         <span>👤 {{ user.name }}</span>
-        <span class="user-department">🏢 {{ user.department }}</span>
-        <span class="user-unit">📌 {{ user.unit or user.department }}</span>
         <span class="badge">ТН: {{ user.badge }}</span>
         <button class="logout-btn" onclick="logout()">Выход</button>
     </div>
@@ -225,8 +76,8 @@
     <!-- ЛЕВАЯ ПАНЕЛЬ - КУСП -->
     <div class="panel">
         <div class="panel-header">
-            <h3>📋 КУСП (Книга учёта сообщений о происшествиях)</h3>
-            <button class="btn btn-primary" onclick="showNewCallModal()">➕</button>
+            <h3>📋 КУСП (Книга учёта сообщений)</h3>
+            <button class="btn btn-primary" onclick="openNewCallModal()">➕ Новый вызов</button>
         </div>
         <div class="panel-content" id="kuspList"></div>
     </div>
@@ -236,11 +87,11 @@
         <div class="panel">
             <div class="panel-header">
                 <h3>🚔 НАРЯДЫ ПОЛИЦИИ</h3>
-                <button class="btn btn-primary" onclick="loadSquads()">🔄</button>
+                <button class="btn btn-primary" onclick="loadSquads()">🔄 Обновить</button>
             </div>
             <div class="panel-content" id="squadsList"></div>
         </div>
-        <div class="panel" style="margin-top: 15px;">
+        <div class="panel" style="margin-top:15px">
             <div class="panel-header">
                 <h3>👥 ОНЛАЙН СОТРУДНИКИ</h3>
             </div>
@@ -253,7 +104,7 @@
         <div class="panel">
             <div class="panel-header">
                 <h3>📻 РАДИООБМЕН</h3>
-                <select id="channelSelect" onchange="changeChannel()" style="background:#0a1520;border:1px solid #1e3a5f;color:white;padding:4px;border-radius:4px;">
+                <select id="channelSelect" onchange="changeChannel()" style="background:#0a1520;border:1px solid #1e3a5f;color:#fff;padding:4px;border-radius:4px">
                     <option value="1">Канал 1 - ППСП</option>
                     <option value="2">Канал 2 - ДПС</option>
                     <option value="3">Канал 3 - Росгвардия</option>
@@ -262,34 +113,37 @@
             </div>
             <div class="radio-messages" id="radioMessages"></div>
             <div class="radio-input">
-                <input type="text" id="radioInput" placeholder="Введите сообщение..." onkeypress="if(event.keyCode==13) sendRadioMessage()">
-                <button class="btn btn-primary" onclick="sendRadioMessage()">📢</button>
+                <input type="text" id="radioInput" placeholder="Введите сообщение...">
+                <button class="btn btn-primary" onclick="sendRadioMessage()">📢 Отправить</button>
                 <button class="btn btn-warning" onclick="sendUrgentMessage()">🚨 СРОЧНО</button>
             </div>
         </div>
 
-        <div class="panel" style="margin-top: 15px;">
+        <div class="panel" style="margin-top:15px">
             <div class="panel-header">
                 <h3>⚠️ ОРИЕНТИРОВКИ</h3>
-                <button class="btn btn-primary" onclick="showNewWantedModal()">➕</button>
+                <button class="btn btn-primary" onclick="openNewWantedModal()">➕ Новая ориентировка</button>
             </div>
             <div class="panel-content" id="wantedList"></div>
         </div>
     </div>
 </div>
 
-<!-- МОДАЛКА НОВОГО ВЫЗОВА -->
+<!-- МОДАЛЬНОЕ ОКНО НОВОГО ВЫЗОВА -->
 <div id="newCallModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
             <h3>📞 Регистрация сообщения о происшествии</h3>
-            <button onclick="closeModal('newCallModal')" style="background:none;border:none;color:white;font-size:20px;">✕</button>
+            <button onclick="closeModal('newCallModal')">✕</button>
         </div>
         <div class="modal-body">
             <div class="form-row">
-                <label>📅 Дата и время</label>
+                <label>📅 Дата</label>
                 <input type="date" id="receivedDate" value="2025-04-16">
-                <input type="time" id="receivedTime" value="14:30" style="margin-top:5px">
+            </div>
+            <div class="form-row">
+                <label>⏰ Время</label>
+                <input type="time" id="receivedTime" value="14:30">
             </div>
             <div class="form-row">
                 <label>👤 Заявитель (ФИО)</label>
@@ -310,7 +164,6 @@
                     <option value="administrative">Административное правонарушение</option>
                     <option value="accident">ДТП</option>
                     <option value="domestic">Семейно-бытовой конфликт</option>
-                    <option value="missing">Без вести пропавший</option>
                 </select>
             </div>
             <div class="form-row">
@@ -323,7 +176,7 @@
                 </select>
             </div>
             <div class="form-row">
-                <label>📝 Описание</label>
+                <label>📝 Описание происшествия</label>
                 <textarea id="incidentDescription" rows="3" placeholder="Подробное описание..."></textarea>
             </div>
             <div style="display:flex;gap:10px;margin-top:15px">
@@ -334,12 +187,12 @@
     </div>
 </div>
 
-<!-- МОДАЛКА НОВОЙ ОРИЕНТИРОВКИ -->
+<!-- МОДАЛЬНОЕ ОКНО НОВОЙ ОРИЕНТИРОВКИ -->
 <div id="newWantedModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
             <h3>🚔 Объявление в розыск</h3>
-            <button onclick="closeModal('newWantedModal')" style="background:none;border:none;color:white;font-size:20px;">✕</button>
+            <button onclick="closeModal('newWantedModal')">✕</button>
         </div>
         <div class="modal-body">
             <div class="form-row">
@@ -358,7 +211,9 @@
                 <input type="text" id="wantedCrime" placeholder="ст. 105 УК РФ - убийство">
             </div>
             <div class="form-row">
-                <label><input type="checkbox" id="wantedDangerous"> Вооружен и особо опасен</label>
+                <label>
+                    <input type="checkbox" id="wantedDangerous"> Вооружен и особо опасен
+                </label>
             </div>
             <div style="display:flex;gap:10px;margin-top:15px">
                 <button class="btn btn-danger" onclick="submitNewWanted()">✅ Объявить в розыск</button>
@@ -372,111 +227,137 @@
     var socket = io();
     var currentChannel = 1;
 
-    // ==================== WEBSOCKET СОБЫТИЯ ====================
-    socket.on('connect', function() { console.log('Подключено к дежурной части'); joinChannel(1); });
-    socket.on('new_kusp', function(data) { showNotification('Новое сообщение', `${data.number} - ${data.place}`, 'warning'); loadKusp(); loadStats(); });
-    socket.on('kusp_assigned', function(data) { showNotification('Назначен наряд', `${data.number} → ${data.assigned_to}`, 'info'); loadKusp(); });
+    // ==================== WEBSOCKET ====================
+    socket.on('connect', function() { console.log('Подключено'); joinChannel(1); });
+    socket.on('new_kusp', function(data) { showNotification('Новое сообщение', data.number + ' - ' + data.place, 'warning'); loadKusp(); loadStats(); });
+    socket.on('kusp_assigned', function(data) { showNotification('Назначен наряд', data.number + ' → ' + data.assigned_to, 'info'); loadKusp(); });
     socket.on('kusp_update', function(data) { loadKusp(); });
     socket.on('radio_message', function(data) { addRadioMessage(data); });
     socket.on('squad_update', function(data) { loadSquads(); });
-    socket.on('new_wanted', function(data) { showNotification('Новая ориентировка', `${data.name || data.number}`, 'danger'); loadWanted(); loadStats(); });
-    socket.on('wanted_captured', function(data) { showNotification('Задержание', `${data.name} задержан`, 'success'); loadWanted(); loadStats(); });
+    socket.on('new_wanted', function(data) { showNotification('Новая ориентировка', data.name + ' - ' + data.number, 'danger'); loadWanted(); loadStats(); });
+    socket.on('wanted_captured', function(data) { showNotification('Задержание', data.name + ' задержан', 'success'); loadWanted(); loadStats(); });
     socket.on('user_status', function(data) { loadOnlineUsers(); loadStats(); });
 
     // ==================== ЗАГРУЗКА ДАННЫХ ====================
     function loadKusp() {
-        fetch('/api/kusp').then(r=>r.json()).then(data=>{
-            document.getElementById('kuspList').innerHTML = data.map(k=>`
-                <div class="kusp-item ${k.priority}" onclick="showKuspDetail(${k.id})">
-                    <div class="kusp-number">${k.number}</div>
-                    <div class="kusp-place">📍 ${k.place} | 📞 ${k.phone||'—'}</div>
-                    <span class="kusp-status status-${k.status}">${getStatusText(k.status)}</span>
-                    ${k.assigned_to ? `<span style="margin-left:8px;font-size:10px;">👮 ${k.assigned_to}</span>` : ''}
-                </div>
-            `).join('');
-            if(data.length === 0) document.getElementById('kuspList').innerHTML = '<div class="text-center" style="padding:20px;color:#666;">Нет сообщений</div>';
-        });
+        fetch('/api/kusp')
+            .then(r => r.json())
+            .then(data => {
+                const container = document.getElementById('kuspList');
+                if(data.length === 0) {
+                    container.innerHTML = '<div style="text-align:center;padding:20px;color:#666;">Нет сообщений</div>';
+                    return;
+                }
+                container.innerHTML = data.map(k => `
+                    <div class="kusp-item ${k.priority}" onclick="showKuspDetail(${k.id})">
+                        <div class="kusp-number">${k.number}</div>
+                        <div class="kusp-place">📍 ${k.place} | 📞 ${k.phone || '—'}</div>
+                        <span class="kusp-status status-${k.status}">${getStatusText(k.status)}</span>
+                        ${k.assigned_to ? `<span style="margin-left:8px;font-size:10px;">👮 ${k.assigned_to}</span>` : ''}
+                    </div>
+                `).join('');
+            });
     }
 
     function loadSquads() {
-        fetch('/api/squads').then(r=>r.json()).then(data=>{
-            document.getElementById('squadsList').innerHTML = data.map(s=>`
-                <div class="squad-item">
-                    <div>
-                        <span class="squad-status status-${s.status}"></span>
-                        <span class="squad-name">${s.name}</span>
-                        <div class="squad-unit">${s.unit}</div>
-                        <div style="font-size:10px;color:#888;">📍 ${s.location || 'на базе'}</div>
+        fetch('/api/squads')
+            .then(r => r.json())
+            .then(data => {
+                const container = document.getElementById('squadsList');
+                container.innerHTML = data.map(s => `
+                    <div class="squad-item">
+                        <div>
+                            <span class="squad-status status-${s.status}"></span>
+                            <strong>${s.name}</strong>
+                            <div style="font-size:10px;color:#888;">${s.unit}</div>
+                            <div style="font-size:10px;color:#888;">📍 ${s.location || 'на базе'}</div>
+                        </div>
+                        <div>
+                            <select onchange="updateSquad(${s.id}, this.value)" style="background:#0a1520;border:1px solid #1e3a5f;color:white;border-radius:4px;padding:4px;">
+                                <option value="available" ${s.status=='available' ? 'selected' : ''}>✅ Доступен</option>
+                                <option value="on_mission" ${s.status=='on_mission' ? 'selected' : ''}>🚔 На выезде</option>
+                                <option value="unavailable" ${s.status=='unavailable' ? 'selected' : ''}>⛔ Недоступен</option>
+                            </select>
+                        </div>
                     </div>
-                    <div>
-                        <select onchange="updateSquad(${s.id}, this.value)" style="background:#0a1520;border:1px solid #1e3a5f;color:white;border-radius:4px;padding:4px;">
-                            <option value="available" ${s.status=='available'?'selected':''}>✅ Доступен</option>
-                            <option value="on_mission" ${s.status=='on_mission'?'selected':''}>🚔 На выезде</option>
-                            <option value="unavailable" ${s.status=='unavailable'?'selected':''}>⛔ Недоступен</option>
-                        </select>
-                    </div>
-                </div>
-            `).join('');
-        });
+                `).join('');
+            });
     }
 
     function loadOnlineUsers() {
-        fetch('/api/online_users').then(r=>r.json()).then(data=>{
-            document.getElementById('onlineUsersList').innerHTML = data.map(u=>`
-                <div class="online-user">
-                    <div>
-                        <div class="online-user-name">👮 ${u.name}</div>
-                        <div class="online-user-dept">${u.position} • ${u.department}</div>
+        fetch('/api/online_users')
+            .then(r => r.json())
+            .then(data => {
+                const container = document.getElementById('onlineUsersList');
+                if(data.length === 0) {
+                    container.innerHTML = '<div style="text-align:center;padding:20px;color:#666;">Нет онлайн сотрудников</div>';
+                    return;
+                }
+                container.innerHTML = data.map(u => `
+                    <div class="online-user">
+                        <div><strong>${u.name}</strong><br><small>${u.position || u.department}</small></div>
+                        <div style="color:#28a745;">● онлайн</div>
                     </div>
-                    <div class="online-status">● онлайн</div>
-                </div>
-            `).join('');
-            if(data.length === 0) document.getElementById('onlineUsersList').innerHTML = '<div class="text-center" style="padding:20px;color:#666;">Нет онлайн сотрудников</div>';
-        });
+                `).join('');
+            });
     }
 
     function loadWanted() {
-        fetch('/api/wanted').then(r=>r.json()).then(data=>{
-            document.getElementById('wantedList').innerHTML = data.map(w=>`
-                <div class="wanted-item">
-                    <div style="flex:1">
-                        <div><strong>${w.name || w.plate || 'Неизвестно'}</strong></div>
-                        <div style="font-size:11px;color:#ff8844;">${w.crime}</div>
-                        <div style="font-size:10px;color:#666;">${w.number}</div>
+        fetch('/api/wanted')
+            .then(r => r.json())
+            .then(data => {
+                const container = document.getElementById('wantedList');
+                if(data.length === 0) {
+                    container.innerHTML = '<div style="text-align:center;padding:20px;color:#666;">Нет активных ориентировок</div>';
+                    return;
+                }
+                container.innerHTML = data.map(w => `
+                    <div class="wanted-item">
+                        <div style="flex:1">
+                            <div><strong>${w.name || 'Неизвестно'}</strong></div>
+                            <div style="font-size:11px;color:#ff8844;">${w.crime}</div>
+                            <div style="font-size:10px;color:#666;">${w.number}</div>
+                        </div>
+                        ${w.dangerous ? '<div class="wanted-danger">⚠️ ОПАСЕН</div>' : ''}
+                        <button class="btn btn-success" onclick="captureWanted(${w.id})" style="padding:4px 8px;">Задержан</button>
                     </div>
-                    ${w.dangerous ? '<div class="wanted-danger">⚠️ ОПАСЕН</div>' : ''}
-                    <button class="btn btn-success" onclick="captureWanted(${w.id})" style="padding:4px 8px;">Задержан</button>
-                </div>
-            `).join('');
-            if(data.length === 0) document.getElementById('wantedList').innerHTML = '<div class="text-center" style="padding:20px;color:#666;">Нет активных ориентировок</div>';
-        });
+                `).join('');
+            });
     }
 
     function loadStats() {
-        fetch('/api/stats').then(r=>r.json()).then(data=>{
-            document.getElementById('kuspToday').textContent = data.kusp_today;
-            document.getElementById('kuspActive').textContent = data.kusp_active;
-            document.getElementById('usersOnline').textContent = data.online_users;
-            document.getElementById('availableSquads').textContent = data.available_squads;
-            document.getElementById('wantedCount').textContent = data.wanted_active;
-        });
+        fetch('/api/stats')
+            .then(r => r.json())
+            .then(data => {
+                document.getElementById('kuspToday').textContent = data.kusp_today;
+                document.getElementById('kuspActive').textContent = data.kusp_active;
+                document.getElementById('usersOnline').textContent = data.online_users;
+                document.getElementById('availableSquads').textContent = data.available_squads;
+                document.getElementById('wantedCount').textContent = data.wanted_active;
+            });
     }
 
     function loadRadioMessages() {
-        fetch(`/api/radio/messages?channel=${currentChannel}`).then(r=>r.json()).then(data=>{
-            const container = document.getElementById('radioMessages');
-            container.innerHTML = data.map(m=>`
-                <div class="radio-msg ${m.is_urgent?'urgent':''}">
-                    <div class="radio-sender">📻 ${m.sender}<span class="radio-department">(${m.sender_department || 'ДЧ'})</span></div>
-                    <div>${m.message}</div>
-                    <div style="font-size:10px;color:#666;">${m.time}</div>
-                </div>
-            `).join('');
-            container.scrollTop = container.scrollHeight;
-        });
+        fetch(`/api/radio/messages?channel=${currentChannel}`)
+            .then(r => r.json())
+            .then(data => {
+                const container = document.getElementById('radioMessages');
+                container.innerHTML = data.map(m => `
+                    <div class="radio-msg ${m.is_urgent ? 'urgent' : ''}">
+                        <div class="radio-sender">📻 ${m.sender}</div>
+                        <div>${m.message}</div>
+                        <div style="font-size:10px;color:#666;">${m.time}</div>
+                    </div>
+                `).join('');
+                container.scrollTop = container.scrollHeight;
+            });
     }
 
     // ==================== ДЕЙСТВИЯ ====================
+    function openNewCallModal() { document.getElementById('newCallModal').style.display = 'flex'; }
+    function openNewWantedModal() { document.getElementById('newWantedModal').style.display = 'flex'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
     function submitNewCall() {
         const data = {
             received_date: document.getElementById('receivedDate').value,
@@ -488,15 +369,91 @@
             priority: document.getElementById('priority').value,
             incident_description: document.getElementById('incidentDescription').value
         };
-        fetch('/api/kusp/new', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
-            .then(r=>r.json()).then(()=>{
-                closeModal('newCallModal');
-                document.getElementById('sourceName').value = '';
-                document.getElementById('sourcePhone').value = '';
-                document.getElementById('incidentPlace').value = '';
-                document.getElementById('incidentDescription').value = '';
-                loadKusp(); loadStats();
-                showNotification('Успешно', 'Сообщение зарегистрировано в КУСП', 'success');
+        
+        fetch('/api/kusp/new', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+        .then(r => r.json())
+        .then(() => {
+            closeModal('newCallModal');
+            document.getElementById('sourceName').value = '';
+            document.getElementById('sourcePhone').value = '';
+            document.getElementById('incidentPlace').value = '';
+            document.getElementById('incidentDescription').value = '';
+            loadKusp();
+            loadStats();
+            showNotification('Успешно', 'Сообщение зарегистрировано в КУСП', 'success');
+        });
+    }
+
+    function submitNewWanted() {
+        const data = {
+            name: document.getElementById('wantedName').value,
+            crime: document.getElementById('wantedCrime').value,
+            dangerous: document.getElementById('wantedDangerous').checked
+        };
+        
+        fetch('/api/wanted/new', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+        .then(r => r.json())
+        .then(() => {
+            closeModal('newWantedModal');
+            document.getElementById('wantedName').value = '';
+            document.getElementById('wantedCrime').value = '';
+            document.getElementById('wantedDangerous').checked = false;
+            loadWanted();
+            loadStats();
+            showNotification('Успешно', 'Ориентировка разослана всем нарядам', 'danger');
+        });
+    }
+
+    function captureWanted(id) {
+        const info = prompt('Введите информацию о задержании (место, время, обстоятельства):');
+        if(info) {
+            fetch(`/api/wanted/${id}/capture`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ info: info })
+            }).then(() => {
+                loadWanted();
+                loadStats();
+                showNotification('Задержание', 'Лицо задержано, ожидает оформления', 'success');
+            });
+        }
+    }
+
+    function showKuspDetail(id) {
+        fetch(`/api/kusp/${id}`)
+            .then(r => r.json())
+            .then(k => {
+                let msg = `📋 ${k.number}\n📍 ${k.incident_place}\n👤 ${k.source_name || '—'}\n📞 ${k.source_phone || '—'}\n📝 ${k.incident_description}\n\n`;
+                
+                if(k.status === 'registered') {
+                    let squad = prompt(msg + 'Назначить наряд (ППСП-1, ППСП-2, ДПС-1, ДПС-2, ОВО-1, ОМОН, ОСН/СОБР, СОГ):');
+                    if(squad) {
+                        fetch(`/api/kusp/${id}/assign`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ assigned_to: squad })
+                        });
+                    }
+                } else if(k.status === 'assigned') {
+                    let action = prompt(msg + 'Выберите действие:\n1 - Завершить вызов\n2 - Отмена');
+                    if(action === '1') {
+                        fetch(`/api/kusp/${id}/status`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ status: 'completed' })
+                        }).then(() => showNotification('Вызов завершен', k.number, 'success'));
+                    }
+                } else {
+                    alert(msg);
+                }
             });
     }
 
@@ -510,7 +467,7 @@
     function sendUrgentMessage() {
         const input = document.getElementById('radioInput');
         if(!input.value.trim()) return;
-        socket.emit('radio_message', { channel: currentChannel, message: `🚨 СРОЧНО! ${input.value}`, is_urgent: true });
+        socket.emit('radio_message', { channel: currentChannel, message: '🚨 СРОЧНО! ' + input.value, is_urgent: true });
         input.value = '';
     }
 
@@ -520,66 +477,53 @@
         loadRadioMessages();
     }
 
-    function joinChannel(channel) { socket.emit('join_channel', { channel: channel }); }
+    function joinChannel(channel) {
+        socket.emit('join_channel', { channel: channel });
+    }
 
     function updateSquad(id, status) {
-        fetch(`/api/squads/${id}/status`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: status }) }).then(()=>loadSquads());
-    }
-
-    function submitNewWanted() {
-        const data = { name: document.getElementById('wantedName').value, crime: document.getElementById('wantedCrime').value, dangerous: document.getElementById('wantedDangerous').checked };
-        fetch('/api/wanted/new', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
-            .then(r=>r.json()).then(()=>{ closeModal('newWantedModal'); document.getElementById('wantedName').value=''; document.getElementById('wantedCrime').value=''; document.getElementById('wantedDangerous').checked=false; loadWanted(); loadStats(); showNotification('Успешно', 'Ориентировка разослана всем нарядам', 'danger'); });
-    }
-
-    function captureWanted(id) {
-        const info = prompt('Введите информацию о задержании:');
-        if(info) fetch(`/api/wanted/${id}/capture`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ info: info }) }).then(()=>{ loadWanted(); loadStats(); showNotification('Задержание', 'Лицо задержано', 'success'); });
-    }
-
-    function showKuspDetail(id) {
-        fetch(`/api/kusp/${id}`).then(r=>r.json()).then(k=>{
-            let msg = `📋 ${k.number}\n📍 ${k.incident_place}\n👤 ${k.source_name||'—'}\n📞 ${k.source_phone||'—'}\n📝 ${k.incident_description}\n\n`;
-            if(k.status === 'registered') {
-                let squad = prompt(`${msg}Назначить наряд (ППСП-1, ППСП-2, ППСП-3, ДПС-1, ДПС-2, ОВО-1, ОМОН, ОСН/СОБР, СОГ):`);
-                if(squad) fetch(`/api/kusp/${id}/assign`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ assigned_to: squad }) });
-            } else if(k.status === 'assigned' || k.status === 'in_progress') {
-                let action = prompt(`${msg}Статус: ${k.status}\n\nВыберите действие:\n1 - Завершить вызов\n2 - Отмена`);
-                if(action === '1') fetch(`/api/kusp/${id}/status`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'completed' }) }).then(()=>showNotification('Вызов завершен', k.number, 'success'));
-            } else { alert(msg); }
-        });
+        fetch(`/api/squads/${id}/status`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: status })
+        }).then(() => loadSquads());
     }
 
     function addRadioMessage(msg) {
         const container = document.getElementById('radioMessages');
         const div = document.createElement('div');
-        div.className = `radio-msg ${msg.is_urgent ? 'urgent' : ''}`;
-        div.innerHTML = `<div class="radio-sender">📻 ${msg.sender}<span class="radio-department">(${msg.sender_department || 'ДЧ'})</span></div><div>${msg.message}</div><div style="font-size:10px;color:#666;">${msg.time}</div>`;
+        div.className = 'radio-msg ' + (msg.is_urgent ? 'urgent' : '');
+        div.innerHTML = `<div class="radio-sender">📻 ${msg.sender}</div><div>${msg.message}</div><div style="font-size:10px;color:#666;">${msg.time}</div>`;
         container.appendChild(div);
         container.scrollTop = container.scrollHeight;
     }
 
-    // ==================== ВСПОМОГАТЕЛЬНЫЕ ====================
     function showNotification(title, message, type) {
         const notif = document.createElement('div');
-        notif.style.cssText = `position:fixed;bottom:20px;right:20px;background:${type==='danger'?'#c01f2e':type==='success'?'#28a745':'#1e3a5f'};color:white;padding:12px 20px;border-radius:8px;z-index:3000;box-shadow:0 4px 12px rgba(0,0,0,0.3);max-width:300px;`;
+        const bgColor = type === 'danger' ? '#c01f2e' : (type === 'success' ? '#28a745' : '#1e3a5f');
+        notif.style.cssText = `position:fixed;bottom:20px;right:20px;background:${bgColor};color:white;padding:12px 20px;border-radius:8px;z-index:3000;box-shadow:0 4px 12px rgba(0,0,0,0.3);max-width:300px;`;
         notif.innerHTML = `<strong>${title}</strong><br>${message}`;
         document.body.appendChild(notif);
         setTimeout(() => notif.remove(), 5000);
     }
 
-    function showNewCallModal() { document.getElementById('newCallModal').style.display = 'flex'; }
-    function showNewWantedModal() { document.getElementById('newWantedModal').style.display = 'flex'; }
-    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
     function logout() { window.location.href = '/logout'; }
-    function getStatusText(s) { const st = { 'registered':'📝 Зарегистрировано', 'assigned':'👮 Назначен', 'in_progress':'🚔 В работе', 'completed':'✅ Завершено' }; return st[s]||s; }
+    function getStatusText(s) {
+        const statuses = { 'registered': '📝 Зарегистрировано', 'assigned': '👮 Назначен', 'completed': '✅ Завершено' };
+        return statuses[s] || s;
+    }
 
     // АВТООБНОВЛЕНИЕ
     setInterval(() => { loadKusp(); loadStats(); loadOnlineUsers(); }, 10000);
     setInterval(() => { loadRadioMessages(); }, 5000);
 
     // ПЕРВИЧНАЯ ЗАГРУЗКА
-    loadKusp(); loadSquads(); loadWanted(); loadStats(); loadOnlineUsers(); loadRadioMessages();
+    loadKusp();
+    loadSquads();
+    loadWanted();
+    loadStats();
+    loadOnlineUsers();
+    loadRadioMessages();
 </script>
 </body>
 </html>
