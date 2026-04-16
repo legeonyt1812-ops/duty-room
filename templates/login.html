@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход - Дежурная часть ОМВД</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Arial', sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #0b1a2a 0%, #1e3a5f 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .login-container {
+            background: #0f1c2c;
+            border-radius: 16px;
+            padding: 40px;
+            width: 100%;
+            max-width: 420px;
+            border: 1px solid #1e3a5f;
+            text-align: center;
+        }
+        .logo h1 {
+            color: #fff;
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+        .logo h2 {
+            color: #c01f2e;
+            font-size: 14px;
+            font-weight: normal;
+        }
+        .logo p {
+            color: #888;
+            font-size: 11px;
+            margin: 15px 0;
+        }
+        .badge-input {
+            width: 100%;
+            padding: 14px;
+            background: #0a1520;
+            border: 1px solid #1e3a5f;
+            border-radius: 10px;
+            color: white;
+            font-size: 16px;
+            text-align: center;
+            margin: 10px 0;
+        }
+        .badge-input:focus {
+            outline: none;
+            border-color: #c01f2e;
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            background: #c01f2e;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background: #a01a26;
+        }
+        .info {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #1e3a5f;
+            font-size: 12px;
+            color: #555;
+        }
+        .departments {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 15px;
+        }
+        .dept-badge {
+            background: #1e3a5f;
+            padding: 4px 6px;
+            border-radius: 6px;
+            font-size: 10px;
+            color: #aaa;
+        }
+        .alert {
+            background: rgba(192, 31, 46, 0.2);
+            border-left: 3px solid #c01f2e;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            color: #ff8888;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="logo">
+            <h1>ОМВД России по Провинциальному району</h1>
+            <h2>Ленинградская область</h2>
+            <p>Дежурная часть • АРМ</p>
+        </div>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        <form method="POST">
+            <input type="text" name="badge" class="badge-input" placeholder="Введите табельный номер" autocomplete="off" required>
+            <button type="submit">Войти в систему</button>
+        </form>
+        
+        <div class="info">
+            <strong>Подразделения:</strong>
+            <div class="departments">
+                <span class="dept-badge">🚔 ППСП</span>
+                <span class="dept-badge">🚗 ДПС</span>
+                <span class="dept-badge">🛡️ Росгвардия</span>
+                <span class="dept-badge">🔍 СОГ</span>
+                <span class="dept-badge">⚖️ СК</span>
+                <span class="dept-badge">📋 Дознание</span>
+                <span class="dept-badge">🎯 Оперчасть</span>
+                <span class="dept-badge">👨‍⚖️ Прокуратура</span>
+                <span class="dept-badge">🎖️ ФСБ</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
