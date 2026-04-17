@@ -84,9 +84,9 @@ with app.app_context():
     
     # Пользователи
     users = [
-        User(badge='001', name='Рабец Сергей', position='Начальник дежурной смены', department='ДЧ'),
-        User(badge='002', name='Лыков Андрей', position='Оперативный дежурный', department='ДЧ'),
-        User(badge='101', name='Сержант Сидоров', position='Сотрудник ППСП', department='ППСП', unit='ППСП-1'),
+        User(badge='001', name='Рабец Сергей', position='Начальник ОМВД', department='ДЧ'),
+        User(badge='002', name='Лыков Андрей', position='Заместитель нач. ОМВД по ООП', department='ДЧ'),
+        User(badge='101', name='Яковлев А.', position='Инспектор ПДН', department='ППСП', unit='ППСП-1'),
         User(badge='102', name='Лейтенант Козлов', position='Сотрудник ППСП', department='ППСП', unit='ППСП-1'),
         User(badge='103', name='Прапорщик Морозов', position='Сотрудник ППСП', department='ППСП', unit='ППСП-2'),
         User(badge='201', name='Капитан Орлов', position='Сотрудник ДПС', department='ДПС', unit='ДПС-1'),
